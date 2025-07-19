@@ -1,0 +1,44 @@
+apiVersion : apps/v1
+kind : Deployment
+metadata:
+  name : node-app #deployment name
+spec:
+  replicas : 2
+  selector : 
+    matchLabels : 
+      app : node-app #pod label name provided ,do that the deployment knows whcih pods to manage
+  template : 
+    metadata : 
+      labels : 
+        app : node-app  #pod label
+    spec : 
+      containers : 
+        - name : node-app   #container name
+          image : philippaul/node-mongo-db:03
+          env :
+            - name : MONGO_HOST
+              valueFrom :
+                configMapKeyRef :
+                  name : mongo-config
+                  key : MONGO_HOST
+            - name : MONGO_PORT
+              valueFrom :
+                configMapKeyRef :
+                  name : mongo-config
+                  key : MONGO_PORT
+
+---
+
+
+apiVersion : v1
+kind : Service
+metadata:
+  name : service-node-app
+spec:
+  ports : 
+    - protocol : TCP
+      port : 8080 #this is the port that will be exposed and listened
+      targetPort : 3000 #This is the port on the Pods (containers) where your application is actually running. The Service will forward traffic from port 8080 to port 3000 on the Pods.
+  selector : 
+    app : node-app   #The selector matches the label app: node-app. This ensures that this Service routes traffic only to the Pods that have the app: node-app label, which matches the Pods created by the Deployment.
+  type : LoadBalancer
